@@ -3,6 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import argparse
+import filecmp
 import os
 import pathlib
 import shlex
@@ -239,7 +240,21 @@ class Build(Forceable):
         self._update_cache()
         self.domains = load_domains(self.build_dir)
 
+        # print('CMake options: {}'.format(self.args.cmake_opts))
+        print('CMake domains: {}'.format(self.domains))
+
+        self._sdp_prepare()
+
         self._run_build(args.target, args.domain)
+
+    def _sdp_prepare(self):
+        if '-DSB_CONFIG_EGPIO_FLPR_APPLICATION=y' in self.args.cmake_opts:
+            asm_gen_dir = self.build_dir + '/flpr_egpio'
+
+            extra_args = ['--target', 'asm_check']
+            run_build(asm_gen_dir, extra_args=extra_args)
+            print("====ASM GEN DONE")
+            print('===Domains:{}'.format(load_domains(self.build_dir).get_domains()[1].build_dir))
 
     def _find_board(self):
         board, origin = None, None

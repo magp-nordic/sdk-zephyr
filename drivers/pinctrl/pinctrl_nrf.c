@@ -40,6 +40,10 @@ static const nrf_gpio_pin_drive_t drive_modes[NRF_DRIVE_COUNT] = {
 
 #define PSEL_DISCONNECTED 0xFFFFFFFFUL
 
+#define NRF_GPIOHSPADCTRL_S_BASE 0x50050400UL
+
+#define NRF_GPIOHSPADCTRL ((NRF_GPIOHSPADCTRL_Type *)NRF_GPIOHSPADCTRL_S_BASE)
+
 #if DT_HAS_COMPAT_STATUS_OKAY(nordic_nrf_uart) || defined(CONFIG_NRFX_UART)
 #define NRF_PSEL_UART(reg, line) ((NRF_UART_Type *)reg)->PSEL##line
 #elif DT_HAS_COMPAT_STATUS_OKAY(nordic_nrf_uarte) || defined(CONFIG_NRFX_UARTE)
@@ -446,6 +450,10 @@ int pinctrl_configure_pins(const pinctrl_soc_pin_t *pins, uint8_t pin_cnt,
 			NRF_PSEL_SDP_MSPI(psel);
 			dir = NRF_GPIO_PIN_DIR_OUTPUT;
 			input = NRF_GPIO_PIN_INPUT_CONNECT;
+			/* Set pins to high speed mode. */
+			NRF_GPIOHSPADCTRL_Type * hsgpio = NRF_GPIOHSPADCTRL;
+			// hsgpio->BIAS = 7;
+			hsgpio->BIAS = 0;
 			break;
 #endif /* DT_HAS_COMPAT_STATUS_OKAY(nordic_nrfe_mspi_controller) */
 #endif /* CONFIG_SOC_NRF54L15_CPUAPP */

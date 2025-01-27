@@ -11,17 +11,13 @@
 
 #define TEST_MSPI_REINIT    1
 
-/* add else if for other SoC platforms */
-#if defined(CONFIG_SOC_POSIX)
-typedef struct mspi_timing_cfg mspi_timing_cfg;
-typedef enum mspi_timing_param mspi_timing_param;
-#elif defined(CONFIG_SOC_FAMILY_AMBIQ)
-#include "mspi_ambiq.h"
-typedef struct mspi_ambiq_timing_cfg mspi_timing_cfg;
-typedef enum mspi_ambiq_timing_param mspi_timing_param;
-#endif
-
 #define MSPI_BUS_NODE       DT_ALIAS(mspi0)
+
+#define NRF_GPIOHSPADCTRL_S_BASE 0x50050400UL
+#define NRF_GPIOHSPADCTRL ((NRF_GPIOHSPADCTRL_Type *)NRF_GPIOHSPADCTRL_S_BASE)
+
+#define BUF_SIZE 256
+uint8_t memc_write_buffer[BUF_SIZE];
 
 static const struct device *mspi_devices[] = {
 	DT_FOREACH_CHILD_STATUS_OKAY_SEP(MSPI_BUS_NODE, DEVICE_DT_GET, (,))
@@ -52,17 +48,61 @@ static struct mspi_dev_cfg device_cfg[] = {
 	DT_FOREACH_CHILD_STATUS_OKAY_SEP(MSPI_BUS_NODE, MSPI_DEVICE_CONFIG_DT, (,))
 };
 
-#if CONFIG_MSPI_XIP
-static struct mspi_xip_cfg xip_cfg[] = {
-	DT_FOREACH_CHILD_STATUS_OKAY_SEP(MSPI_BUS_NODE, MSPI_XIP_CONFIG_DT, (,))
-};
-#endif
 
-#if CONFIG_MSPI_SCRAMBLE
-static struct mspi_scramble_cfg scramble_cfg[] = {
-	DT_FOREACH_CHILD_STATUS_OKAY_SEP(MSPI_BUS_NODE, MSPI_SCRAMBLE_CONFIG_DT, (,))
+struct mspi_xfer_packet packet1[] = {
+// {
+// 	.dir                = MSPI_RX,
+// 	.cmd                = 0x9F,
+// 	.address            = 0x00,
+// 	.num_bytes          = 3,
+// 	.data_buf           = memc_write_buffer,
+// 	.cb_mask            = MSPI_BUS_NO_CB,
+// },
+{
+	.dir                = MSPI_RX,
+	.cmd                = 0x90,
+	.address            = 0x00,
+	.num_bytes          = 2,
+	.data_buf           = memc_write_buffer,
+	.cb_mask            = MSPI_BUS_NO_CB,
+},
+// {
+// 	.dir                = MSPI_TX,
+// 	.cmd                = 0x01,
+// 	.address            = 0,
+// 	.num_bytes          = 3,
+// 	.data_buf           = memc_write_buffer,
+// 	.cb_mask            = MSPI_BUS_NO_CB,
+// },
+// {
+// 	.dir                = MSPI_RX,
+// 	.cmd                = 0x15,
+// 	.address            = 0,
+// 	.num_bytes          = 2,
+// 	.data_buf           = memc_write_buffer,
+// 	.cb_mask            = MSPI_BUS_NO_CB,
+// },
+// {
+// 	.dir                = MSPI_RX,
+// 	.cmd                = 0x01,
+// 	.address            = 0,
+// 	.num_bytes          = 3,
+// 	.data_buf           = memc_write_buffer,
+// 	.cb_mask            = MSPI_BUS_NO_CB,
+// },
 };
-#endif
+
+struct mspi_xfer xfer = {
+	.async                      = false,
+	.xfer_mode                  = MSPI_PIO,
+	.tx_dummy                   = 0,
+	.cmd_length                 = 1,
+	.addr_length                = 3,
+	.priority                   = 0,
+	.packets                    = (struct mspi_xfer_packet *)&packet1,
+	.num_packet                 = 1, //sizeof(packet1) / sizeof(struct mspi_xfer_packet),
+	.timeout                    = 100,
+};
 
 ZTEST(mspi_api, test_mspi_api)
 {
@@ -70,6 +110,11 @@ ZTEST(mspi_api, test_mspi_api)
 	const struct device *mspi_bus = DEVICE_DT_GET(MSPI_BUS_NODE);
 
 	zassert_true(device_is_ready(mspi_bus), "mspi_bus is not ready");
+
+	/* Initialize write buffer */
+	for (uint32_t i = 0; i < BUF_SIZE; i++) {
+		memc_write_buffer[i] = (uint8_t)i+1;
+	}
 
 #if TEST_MSPI_REINIT
 	const struct mspi_dt_spec spec = {
@@ -81,44 +126,31 @@ ZTEST(mspi_api, test_mspi_api)
 	zassert_equal(ret, 0, "mspi_config failed.");
 #endif
 
-	for (int dev_idx = 0; dev_idx < ARRAY_SIZE(mspi_devices); ++dev_idx) {
 
-		zassert_true(device_is_ready(mspi_devices[dev_idx]), "mspi_device is not ready");
+	NRF_GPIOHSPADCTRL_Type * hsgpio = NRF_GPIOHSPADCTRL;
 
-		ret = mspi_dev_config(mspi_bus, &dev_id[dev_idx],
-				      MSPI_DEVICE_CONFIG_ALL, &device_cfg[dev_idx]);
-		zassert_equal(ret, 0, "mspi_dev_config failed.");
+	printf("hsgpio value: %d\n", hsgpio->BIAS);
 
-#if CONFIG_MSPI_XIP
-		ret = mspi_xip_config(mspi_bus, &dev_id[dev_idx], &xip_cfg[dev_idx]);
-		zassert_equal(ret, 0, "mspi_xip_config failed.");
-#endif
+	// for (int dev_idx = 0; dev_idx < ARRAY_SIZE(mspi_devices); ++dev_idx) {
 
-#if CONFIG_MSPI_SCRAMBLE
-		ret = mspi_scramble_config(mspi_bus, &dev_id[dev_idx], &scramble_cfg[dev_idx]);
-		zassert_equal(ret, 0, "mspi_scramble_config failed.");
-#endif
+	zassert_true(device_is_ready(mspi_devices[1]), "mspi_device is not ready");
 
-#if CONFIG_MSPI_TIMING
-		mspi_timing_cfg timing_cfg;
-		mspi_timing_param timing_cfg_mask = 0;
+	ret = mspi_dev_config(mspi_bus, &dev_id[1],
+					MSPI_DEVICE_CONFIG_ALL, &device_cfg[1]);
+	zassert_equal(ret, 0, "mspi_dev_config failed.");
 
-		ret = mspi_timing_config(mspi_bus, &dev_id[dev_idx], timing_cfg_mask, &timing_cfg);
-		zassert_equal(ret, 0, "mspi_timing_config failed.");
-#endif
+	memc_write_buffer[0] = 0;
+	memc_write_buffer[1] = 0;
+	memc_write_buffer[2] = 2;
 
-		ret = mspi_register_callback(mspi_bus, &dev_id[dev_idx],
-					     MSPI_BUS_XFER_COMPLETE, NULL, NULL);
-		if (ret == -ENOTSUP) {
-			printf("mspi_register_callback not supported.\n");
-		} else {
-			zassert_equal(ret, 0, "mspi_register_callback failed.");
-		}
+	ret = mspi_transceive(mspi_bus, &dev_id[1], &xfer);
+	printf("ret = %d\n", ret);
 
-		ret = mspi_get_channel_status(mspi_bus, 0);
-		zassert_equal(ret, 0, "mspi_get_channel_status failed.");
+	printf("len:%d D: %x, %x, %x\n", memc_write_buffer[0], memc_write_buffer[1], memc_write_buffer[2], memc_write_buffer[3]);
 
-	}
+	// }
+
+	k_sleep(K_MSEC(1000));
 }
 
 ZTEST_SUITE(mspi_api, NULL, NULL, NULL, NULL, NULL);

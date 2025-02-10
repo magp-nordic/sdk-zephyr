@@ -49,19 +49,19 @@ static struct mspi_dev_cfg device_cfg[] = {
 
 
 struct mspi_xfer_packet packet1[] = {
-// {
-// 	.dir                = MSPI_RX,
-// 	.cmd                = 0x9F,
-// 	.address            = 0x00,
-// 	.num_bytes          = 3,
-// 	.data_buf           = memc_write_buffer,
-// 	.cb_mask            = MSPI_BUS_NO_CB,
-// },
 {
-	.dir                = MSPI_RX,
+	.dir                = MSPI_TX,
+	.cmd                = 0x06,
+	.address            = 0x00,
+	.num_bytes          = 0,
+	.data_buf           = memc_write_buffer,
+	.cb_mask            = MSPI_BUS_NO_CB,
+},
+{
+	.dir                = MSPI_TX,
 	.cmd                = 0x90,
 	.address            = 0x00,
-	.num_bytes          = 2,
+	.num_bytes          = 1,
 	.data_buf           = memc_write_buffer,
 	.cb_mask            = MSPI_BUS_NO_CB,
 },
@@ -91,14 +91,76 @@ struct mspi_xfer_packet packet1[] = {
 // },
 };
 
-struct mspi_xfer xfer = {
+struct mspi_xfer_packet packet2[] = {
+{
+	.dir                = MSPI_TX,
+	.cmd                = 0x02,
+	.address            = 0,
+	.num_bytes          = 3,
+	.data_buf           = memc_write_buffer + 1,
+	.cb_mask            = MSPI_BUS_NO_CB,
+},
+// {
+// 	.dir                = MSPI_RX,
+// 	.cmd                = 0x6B,
+// 	.address            = 0,
+// 	.num_bytes          = 3,
+// 	.data_buf           = memc_write_buffer + 4,
+// 	.cb_mask            = MSPI_BUS_NO_CB,
+// },
+};
+
+struct mspi_xfer_packet packet2[] = {
+// {
+// 	.dir                = MSPI_TX,
+// 	.cmd                = 0x02,
+// 	.address            = 0,
+// 	.num_bytes          = 3,
+// 	.data_buf           = memc_write_buffer + 1,
+// 	.cb_mask            = MSPI_BUS_NO_CB,
+// },
+{
+	.dir                = MSPI_RX,
+	.cmd                = 0x6B,
+	.address            = 0,
+	.num_bytes          = 3,
+	.data_buf           = memc_write_buffer + 4,
+	.cb_mask            = MSPI_BUS_NO_CB,
+},
+};
+
+struct mspi_xfer xfer1 = {
+	.async                      = false,
+	.xfer_mode                  = MSPI_PIO,
+	.tx_dummy                   = 0,
+	.cmd_length                 = 1,
+	.addr_length                = 0,
+	.priority                   = 0,
+	.packets                    = (struct mspi_xfer_packet *)&packet1,
+	.num_packet                 = 2, //sizeof(packet1) / sizeof(struct mspi_xfer_packet),
+	.timeout                    = 100,
+};
+
+struct mspi_xfer xfer2 = {
 	.async                      = false,
 	.xfer_mode                  = MSPI_PIO,
 	.tx_dummy                   = 0,
 	.cmd_length                 = 1,
 	.addr_length                = 3,
 	.priority                   = 0,
-	.packets                    = (struct mspi_xfer_packet *)&packet1,
+	.packets                    = (struct mspi_xfer_packet *)&packet2,
+	.num_packet                 = 1, //sizeof(packet1) / sizeof(struct mspi_xfer_packet),
+	.timeout                    = 100,
+};
+
+struct mspi_xfer xfer3 = {
+	.async                      = false,
+	.xfer_mode                  = MSPI_PIO,
+	.tx_dummy                   = 0,
+	.cmd_length                 = 1,
+	.addr_length                = 3,
+	.priority                   = 0,
+	.packets                    = (struct mspi_xfer_packet *)&packet3,
 	.num_packet                 = 1, //sizeof(packet1) / sizeof(struct mspi_xfer_packet),
 	.timeout                    = 100,
 };
@@ -138,15 +200,30 @@ ZTEST(mspi_api, test_mspi_api)
 					MSPI_DEVICE_CONFIG_ALL, &device_cfg[1]);
 	zassert_equal(ret, 0, "mspi_dev_config failed.");
 
-	memc_write_buffer[0] = 0;
-	memc_write_buffer[1] = 0;
-	memc_write_buffer[2] = 2;
+	memc_write_buffer[0] = 0x40;
 
-	ret = mspi_transceive(mspi_bus, &dev_id[1], &xfer);
+	/* Enable write, enable quad. */
+
+	ret = mspi_transceive(mspi_bus, &dev_id[1], &xfer1);
 	printf("ret = %d\n", ret);
 
-	printf("len:%d D: %x, %x, %x\n", memc_write_buffer[0], memc_write_buffer[1], memc_write_buffer[2], memc_write_buffer[3]);
+	/* Page program. */
 
+	device_cfg[1].io_mode = MSPI_IO_MODE_QUAD_1_1_4;
+
+	ret = mspi_dev_config(mspi_bus, &dev_id[1],
+					MSPI_DEVICE_CONFIG_IO_MODE , &device_cfg[1]);
+	zassert_equal(ret, 0, "mspi_dev_config2 failed.");
+
+	ret = mspi_transceive(mspi_bus, &dev_id[1], &xfer2);
+	printf("ret = %d\n", ret);
+
+	/* Quad read. */
+
+	ret = mspi_transceive(mspi_bus, &dev_id[1], &xfer3);
+	printf("ret = %d\n", ret);
+
+	printf("len:%d D: %x, %x, %x\n", memc_write_buffer[4], memc_write_buffer[5], memc_write_buffer[6], memc_write_buffer[7]);
 	// }
 
 	k_sleep(K_MSEC(1000));

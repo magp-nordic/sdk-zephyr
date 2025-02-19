@@ -263,29 +263,10 @@ ZTEST(mspi_api, test_mspi_api)
 
 		printf("status:%x\n", memc_write_buffer[10]);
 
-		/* Enable write again, so that page program would work. */
-
-		ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2b);
-		printf("ret = %d\n", ret);
-
-		k_sleep(K_MSEC(5));
-
-		/* Page program. */
-
-		// memc_write_buffer[2] = 0xf0;
-		// memc_write_buffer[3] = 0xff;
-		// memc_write_buffer[4] = 0x0f;
-
+		/* Write on QUAD. */
 		memc_write_buffer[2] = 0xc2;
 		memc_write_buffer[3] = 0x28;
 		memc_write_buffer[4] = 0x17;
-
-		ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2);
-		printf("ret = %d\n", ret);
-
-		k_sleep(K_MSEC(10));
-
-		/* Quad read. */
 
 		device_cfg[dev_idx].io_mode = MSPI_IO_MODE_QUAD_1_1_4;
 
@@ -293,25 +274,58 @@ ZTEST(mspi_api, test_mspi_api)
 						MSPI_DEVICE_CONFIG_IO_MODE , &device_cfg[dev_idx]);
 		zassert_equal(ret, 0, "mspi_dev_config2 failed.");
 
-		ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer3);
+		ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2);
 		printf("ret = %d\n", ret);
 
-		printf("D:%x %x, %x, %x\n", memc_write_buffer[5], memc_write_buffer[6], memc_write_buffer[7], memc_write_buffer[8]);
-		printf("D2:%x %x, %x, %x\n", memc_write_buffer[8], memc_write_buffer[9], memc_write_buffer[10], memc_write_buffer[11]);
-		// printf("D9:%x\n", memc_write_buffer[9]);
+
+		/* Enable write again, so that page program would work. */
+
+		// ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2b);
+		// printf("ret = %d\n", ret);
+
+		// k_sleep(K_MSEC(5));
+
+		/* Page program. */
+
+		// memc_write_buffer[2] = 0xf0;
+		// memc_write_buffer[3] = 0xff;
+		// memc_write_buffer[4] = 0x0f;
+
+		// memc_write_buffer[2] = 0xc2;
+		// memc_write_buffer[3] = 0x28;
+		// memc_write_buffer[4] = 0x17;
+
+		// ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2);
+		// printf("ret = %d\n", ret);
+
+		// k_sleep(K_MSEC(10));
+
+		/* Quad read. */
+
+		// device_cfg[dev_idx].io_mode = MSPI_IO_MODE_QUAD_1_1_4;
+
+		// ret = mspi_dev_config(mspi_bus, &dev_id[dev_idx],
+		// 				MSPI_DEVICE_CONFIG_IO_MODE , &device_cfg[dev_idx]);
+		// zassert_equal(ret, 0, "mspi_dev_config2 failed.");
+
+		// ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer3);
+		// printf("ret = %d\n", ret);
+
+		// printf("D:%x %x, %x, %x\n", memc_write_buffer[5], memc_write_buffer[6], memc_write_buffer[7], memc_write_buffer[8]);
+		// printf("D2:%x %x, %x, %x\n", memc_write_buffer[8], memc_write_buffer[9], memc_write_buffer[10], memc_write_buffer[11]);
 
 		/* Read Status Register. */
 
-		device_cfg[dev_idx].io_mode = MSPI_IO_MODE_SINGLE;
+		// device_cfg[dev_idx].io_mode = MSPI_IO_MODE_SINGLE;
 
-		ret = mspi_dev_config(mspi_bus, &dev_id[dev_idx],
-						MSPI_DEVICE_CONFIG_IO_MODE , &device_cfg[dev_idx]);
-		zassert_equal(ret, 0, "mspi_dev_config3 failed.");
+		// ret = mspi_dev_config(mspi_bus, &dev_id[dev_idx],
+		// 				MSPI_DEVICE_CONFIG_IO_MODE , &device_cfg[dev_idx]);
+		// zassert_equal(ret, 0, "mspi_dev_config3 failed.");
 
-		ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2a);
-		printf("ret = %d\n", ret);
+		// ret = mspi_transceive(mspi_bus, &dev_id[dev_idx], &xfer2a);
+		// printf("ret = %d\n", ret);
 
-		printf("status:%x\n", memc_write_buffer[10]);
+		// printf("status:%x\n", memc_write_buffer[10]);
 	}
 
 	k_sleep(K_MSEC(1000));

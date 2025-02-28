@@ -6,28 +6,28 @@
 
 / {
 	aliases {
-		mspi0 = &sdp_mspi_api;
+		mspi0 = &sdp_mspi;
 	};
 };
 
 &cpuflpr_vpr {
 	status = "okay";
 
-	sdp_mspi_api: sdp_mspi_api {
-		compatible = "nordic,nrfe-mspi-controller";
-		#address-cells = <1>;
-		#size-cells = <0>;
-		clock-frequency = <DT_FREQ_M(64)>;
-		pinctrl-0 = <&sdp_mspi_default>;
-		pinctrl-1 = <&sdp_mspi_sleep>;
-		pinctrl-names = "default", "sleep";
-		status = "okay";
+	// sdp_mspi: sdp_mspi {
+		// compatible = "nordic,nrfe-mspi-controller";
+		// #address-cells = <1>;
+		// #size-cells = <0>;
+		// clock-frequency = <DT_FREQ_M(64)>;
+		// pinctrl-0 = <&sdp_mspi_default>;
+		// pinctrl-1 = <&sdp_mspi_sleep>;
+		// pinctrl-names = "default", "sleep";
+		// status = "okay";
 
-		mspi_device: mspi_device@0 {
-			status = "okay";
-			compatible = "zephyr,mspi-emul-device";
-			reg = <0x0>;
-			mspi-max-frequency = <DT_FREQ_M(1)>;
-		};
-	};
+		// mspi_device: mspi_device@0 {
+		// 	status = "okay";
+		// 	compatible = "zephyr,mspi-emul-device";
+		// 	reg = <0x0>;
+		// 	mspi-max-frequency = <DT_FREQ_M(1)>;
+		// };
+	// };
 };

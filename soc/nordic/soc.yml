@@ -19,6 +19,7 @@ family:
             cpuclusters:
               - name: cpuapp
               - name: cpunet
+<<<<<<< HEAD
       - name: nrf54l
         socs:
           - name: nrf54l05
@@ -45,6 +46,8 @@ family:
             cpuclusters:
               - name: cpuapp
               - name: cpuflpr
+=======
+>>>>>>> 3805756e37b (boards, soc, samples, tests: remove nRF54L15)
       - name: nrf54h
         socs:
           - name: nrf54h20
@@ -112,6 +115,7 @@ runners:
               - nrf9161
               - nrf9161/ns
           - qualifiers:
+<<<<<<< HEAD
               - nrf54l05/cpuapp
               - nrf54l05/cpuflpr
           - qualifiers:
@@ -132,6 +136,8 @@ runners:
               - nrf54lm20a/cpuapp
               - nrf54lm20a/cpuflpr
           - qualifiers:
+=======
+>>>>>>> 3805756e37b (boards, soc, samples, tests: remove nRF54L15)
               - nrf54h20/cpuapp
               - nrf54h20/cpurad
               - nrf54h20/cpuppr
@@ -181,6 +187,7 @@ runners:
               - nrf9161
               - nrf9161/ns
           - qualifiers:
+<<<<<<< HEAD
               - nrf54l05/cpuapp
               - nrf54l05/cpuflpr
           - qualifiers:
@@ -201,6 +208,8 @@ runners:
               - nrf54lm20a/cpuapp
               - nrf54lm20a/cpuflpr
           - qualifiers:
+=======
+>>>>>>> 3805756e37b (boards, soc, samples, tests: remove nRF54L15)
               - nrf54h20/cpuapp
               - nrf54h20/cpurad
               - nrf54h20/cpuppr
@@ -250,6 +259,7 @@ runners:
               - nrf9161
               - nrf9161/ns
           - qualifiers:
+<<<<<<< HEAD
               - nrf54l05/cpuapp
               - nrf54l05/cpuflpr
           - qualifiers:
@@ -270,6 +280,8 @@ runners:
               - nrf54lm20a/cpuapp
               - nrf54lm20a/cpuflpr
           - qualifiers:
+=======
+>>>>>>> 3805756e37b (boards, soc, samples, tests: remove nRF54L15)
               - nrf54h20/cpuapp
               - nrf54h20/cpurad
               - nrf54h20/cpuppr

@@ -23,8 +23,8 @@ manifest:
       url-base: https://github.com/zephyrproject-rtos
     - name: babblesim
       url-base: https://github.com/BabbleSim
-    - name: masz
-      url-base: https://github.com/masz-nordic
+    - name: magp
+      url-base: https://github.com/magp-nordic
     - name: nrfconnect
       url-base: https://github.com/nrfconnect
 
